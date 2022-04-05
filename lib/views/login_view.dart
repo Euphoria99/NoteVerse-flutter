@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:myfirstnotes/constants/routes.dart';
 import '../utilities/show_error_dialog.dart';
 
+import 'dart:developer' as devtools show log;
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -77,19 +78,34 @@ class _LoginViewState extends State<LoginView> {
                   // devtools.log('Wrong password :(');
                   await showErrorDialog(
                     context,
-                    'Wrong Credentials',
+                    'Incorrect Password',
                   );
-                } else {
+                } else if (e.code == 'invalid-email'){
+                  // devtools.log(e.toString());
                   await showErrorDialog(
                     context,
-                    'Error: ${e.code}',
-                  );
+                    'Please enter a valid email',
+                  ); 
+                
+                } else if (e.code == 'unknown'){
+                  // devtools.log(e.toString());
+                  await showErrorDialog(
+                    context,
+                    'Please enter email and password fields',
+                  ); 
+                
+                } 
+                else {
+                    await showErrorDialog(
+                      context,
+                      'Error: ${e.code}',
+                    );
                 }
               } catch (e) {
                 await showErrorDialog(
-                    context,
-                    e.toString(),
-                  );
+                  context,
+                  e.toString(),
+                );
               }
             },
             child: const Text('Login'),
@@ -106,4 +122,6 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 }
+
+
 
