@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:myfirstnotes/services/auth/auth_user.dart';
 import 'package:myfirstnotes/services/auth/auth_provider.dart';
 import 'package:myfirstnotes/services/auth/auth_exceptions.dart';
@@ -5,12 +6,19 @@ import 'package:myfirstnotes/services/auth/auth_exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuthException, FirebaseAuth;
 
+import '../../firebase_options.dart';
 
 //this is a concrete implementation of Auth provider.
 
-
-
 class FirebaseAuthProvider implements AuthProvider {
+  
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+  
   @override
   Future<AuthUser> createUser({
     required String email,
@@ -77,12 +85,14 @@ class FirebaseAuthProvider implements AuthProvider {
         throw InvalidEmailAuthException();
       } else if (e.code == 'unknown') {
         throw UnknownAuthException();
+      }else if (e.code == '') {
+        throw UserNotLoggedInAuthException();
       } else {
         throw GenericAuthException();
       }
     }
-
   }
+// 
 
   @override
   Future<void> logOut() async {
@@ -103,4 +113,5 @@ class FirebaseAuthProvider implements AuthProvider {
       throw UserNotLoggedInAuthException();
     }
   }
+
 }

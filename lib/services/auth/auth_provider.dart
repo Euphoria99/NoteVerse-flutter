@@ -1,10 +1,11 @@
 import 'package:myfirstnotes/services/auth/auth_user.dart';
 
-//abstract class that return an instance from auth class.
+//abstract class that returns an instance from auth class.
 
 //Interface
 
 abstract class AuthProvider {
+  Future<void> initialize();
   AuthUser? get currentUser;
   Future<AuthUser> logIn({
     required String email,
