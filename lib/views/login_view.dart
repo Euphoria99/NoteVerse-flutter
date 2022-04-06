@@ -1,9 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:myfirstnotes/constants/routes.dart';
+import 'package:myfirstnotes/services/auth/auth_exceptions.dart';
+import 'package:myfirstnotes/services/auth/auth_service.dart';
 import '../utilities/show_error_dialog.dart';
-
-import 'dart:developer' as devtools show log;
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -61,50 +60,53 @@ class _LoginViewState extends State<LoginView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                await FirebaseAuth.instance.signInWithEmailAndPassword(
-                    email: email, password: password);
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  notesRoutes,
-                  (route) => false,
+                await AuthService.firebase().logIn(
+                  email: email,
+                  password: password,
                 );
-              } on FirebaseAuthException catch (e) {
-                if (e.code == 'user-not-found') {
-                  // devtools.log('user not found');
-                  await showErrorDialog(
-                    context,
-                    'User not Found',
+                final user = AuthService.firebase().currentUser;
+                if (user?.isEmailVerified ?? false) {
+                  //user's email is verified
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    notesRoutes,
+                    (route) => false,
                   );
-                } else if (e.code == 'wrong-password') {
-                  // devtools.log('Wrong password :(');
-                  await showErrorDialog(
-                    context,
-                    'Incorrect Password',
+                } else {
+                  // user's email is NOT verified
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    verifyEmailRoute,
+                    (route) => false,
                   );
-                } else if (e.code == 'invalid-email'){
-                  // devtools.log(e.toString());
-                  await showErrorDialog(
-                    context,
-                    'Please enter a valid email',
-                  ); 
-                
-                } else if (e.code == 'unknown'){
-                  // devtools.log(e.toString());
-                  await showErrorDialog(
-                    context,
-                    'Please enter email and password fields',
-                  ); 
-                
-                } 
-                else {
-                    await showErrorDialog(
-                      context,
-                      'Error: ${e.code}',
-                    );
                 }
-              } catch (e) {
+              } on UnknownAuthException {
                 await showErrorDialog(
                   context,
-                  e.toString(),
+                  'Please enter email and password fields',
+                );
+              } on UserNotFoundAuthException {
+                await showErrorDialog(
+                  context,
+                  'User not Found',
+                );
+              } on WrongPasswordAuthException {
+                await showErrorDialog(
+                  context,
+                  'Incorrect Password',
+                );
+              } on InvalidEmailAuthException {
+                await showErrorDialog(
+                  context,
+                  'Please Enter a Valid Email!',
+                );
+              } on UserNotLoggedInAuthException {
+                await showErrorDialog(
+                  context,
+                  'test123',
+                );
+              } on GenericAuthException {
+                await showErrorDialog(
+                  context,
+                  'Authentication Error',
                 );
               }
             },
@@ -122,6 +124,3 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 }
-
-
-
