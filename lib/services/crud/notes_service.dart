@@ -4,6 +4,7 @@ import 'package:myfirstnotes/services/crud/crud_exceptions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
+import 'package:flutter/foundation.dart';
 
 class NotesService {
   Database? _db;
@@ -11,12 +12,17 @@ class NotesService {
   List<DatabaseNote> _notes = [];
 
   static final NotesService _shared = NotesService._sharedInstance();
-  NotesService._sharedInstance();
+  NotesService._sharedInstance() {
+    _notesStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        _notesStreamController.sink.add(_notes);
+      },
+    );
+  }
   factory NotesService() => _shared;
 
   //everything from outside will be read from _notesStreamController
-  final _notesStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
   Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
@@ -66,6 +72,7 @@ class NotesService {
   }
 
   Future<Iterable<DatabaseNote>> getAllNotes() async {
+    await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     final notes = await db.query(noteTable);
 
@@ -78,7 +85,7 @@ class NotesService {
     final notes = await db.query(
       noteTable,
       limit: 1,
-      where: 'id: ?',
+      where: 'id= ?',
       whereArgs: [id],
     );
 
@@ -95,7 +102,7 @@ class NotesService {
 
   Future<int> deleteAllNotes() async {
     await _ensureDbIsOpen();
-    await _ensureDbIsOpen();
+
     final db = _getDatabaseOrThrow();
     final numberOfDeletions = await db.delete(noteTable);
     _notes = [];
@@ -156,6 +163,7 @@ class NotesService {
       userTable,
       limit: 1,
       where: 'email =?',
+      whereArgs: [email.toLowerCase()],
     );
 
     if (results.isEmpty) {
@@ -224,7 +232,9 @@ class NotesService {
   Future<void> _ensureDbIsOpen() async {
     try {
       await open();
-    } on DatabaseAlreadyOpenException {}
+    } on DatabaseAlreadyOpenException {
+      //empty
+    }
   }
 
   Future<void> open() async {
@@ -261,6 +271,8 @@ class DatabaseUser {
         email = map[emailColumn] as String;
 
   @override
+  String toString() => 'Person, ID = $id, email = $email';
+  @override
   bool operator ==(covariant DatabaseUser other) => id == other.id;
 
   @override
@@ -289,7 +301,7 @@ class DatabaseNote {
 
   @override
   String toString() =>
-      'Note, ID = $id, userId, isSynchedWithCloud = $isSyncedWithCloud';
+      'Note, ID = $id, userId = $userId, isSyncedWithCloud = $isSyncedWithCloud, text = $text';
 
   @override
   bool operator ==(covariant DatabaseNote other) => id == other.id;
