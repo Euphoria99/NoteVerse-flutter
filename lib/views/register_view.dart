@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:myfirstnotes/constants/routes.dart';
 import 'package:myfirstnotes/services/auth/auth_exceptions.dart';
 import 'package:myfirstnotes/services/auth/auth_service.dart';
-import 'package:myfirstnotes/utilities/show_error_dialog.dart';
+
+import '../utilities/dialogs/error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({Key? key}) : super(key: key);
@@ -67,26 +68,27 @@ class _RegisterViewState extends State<RegisterView> {
                 AuthService.firebase().sendEmailVerification();
                 Navigator.of(context).pushNamed(verifyEmailRoute);
               } on WeakPasswordAuthException {
-                await showErrorDialog(context,
-                'Weak Password',
+                await showErrorDialog(
+                  context,
+                  'Weak Password',
                 );
-              }on EmailAlreadyInUseAuthException {
-                    showErrorDialog(
-                    context,
-                    'Email is Already in Use',
-                  );
-              }on InvalidEmailAuthException {  
-                  await showErrorDialog(
-                    context,
-                    'This is an Invalid Email Address',
-                  );
-              }on GenericAuthException {   
-                 await showErrorDialog(
+              } on EmailAlreadyInUseAuthException {
+                showErrorDialog(
+                  context,
+                  'Email is Already in Use',
+                );
+              } on InvalidEmailAuthException {
+                await showErrorDialog(
+                  context,
+                  'This is an Invalid Email Address',
+                );
+              } on GenericAuthException {
+                await showErrorDialog(
                   context,
                   'Failed to Register',
                 );
               }
-              } ,
+            },
             child: const Text('Register'),
           ),
           TextButton(
