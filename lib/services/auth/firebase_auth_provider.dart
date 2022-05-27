@@ -11,20 +11,21 @@ import '../../firebase_options.dart';
 //this is a concrete implementation of Auth provider.
 
 class FirebaseAuthProvider implements AuthProvider {
-  
   @override
   Future<void> initialize() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  
+
   @override
   Future<AuthUser> createUser({
     required String email,
     required String password,
   }) async {
     try {
+      //if you want to see the login overlay for longer duration(below 1 line of code)
+      await Future.delayed(const Duration(seconds: 3));
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -85,14 +86,14 @@ class FirebaseAuthProvider implements AuthProvider {
         throw InvalidEmailAuthException();
       } else if (e.code == 'unknown') {
         throw UnknownAuthException();
-      }else if (e.code == '') {
+      } else if (e.code == '') {
         throw UserNotLoggedInAuthException();
       } else {
         throw GenericAuthException();
       }
     }
   }
-// 
+//
 
   @override
   Future<void> logOut() async {
@@ -113,5 +114,4 @@ class FirebaseAuthProvider implements AuthProvider {
       throw UserNotLoggedInAuthException();
     }
   }
-
 }
